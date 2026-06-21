@@ -4,12 +4,29 @@ Cross-provider model fallback for [pi](https://github.com/earendil-works/pi-codi
 
 When the active model hits a terminal **transient**, **quota**, or **model-unavailable** error, the extension swaps to the next configured fallback model — trying the **same provider first**, then other providers — and re-issues the failed prompt. The swap is sticky for the session; the original model is restored on shutdown.
 
-## Setup
+## Install
 
 ```bash
-pi -e ./provider-fallback.ts          # quick test
+pi install git:github.com/37/pi-provider-fallback
+```
+
+Pin to a tag or commit, or use a raw URL:
+
+```bash
+pi install git:github.com/37/pi-provider-fallback@v2.0.0
+pi install https://github.com/37/pi-provider-fallback
+```
+
+This adds the extension to `~/.pi/agent/settings.json` (use `-l` to write project-local `.pi/settings.json` instead).
+
+<details>
+<summary>Local / dev install</summary>
+
+```bash
+pi -e ./provider-fallback.ts          # quick test, no settings change
 # or drop into ~/.pi/agent/extensions/ for auto-discovery + /reload
 ```
+</details>
 
 Then configure interactively in pi:
 
