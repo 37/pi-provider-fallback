@@ -4,6 +4,13 @@ Cross-provider model fallback for [pi](https://github.com/earendil-works/pi-codi
 
 When the active model hits a terminal **transient**, **quota**, or **model-unavailable** error, the extension swaps to the next configured fallback model — trying the **same provider first**, then other providers — and re-issues the failed prompt. The swap is sticky for the session; the original model is restored on shutdown.
 
+At a glance:
+
+- This is a **pi extension** — it loads into pi and adds the `/fallback-config` and `/fallback-status` commands.
+- Options **draw from your available providers** (the ones in `pi --list-models`) — nothing invented.
+- **Providers are enabled for fallback per your preference** — opt each one in or out.
+- **Up to two models per provider** can be set as your **1st** and **2nd** fallback preference.
+
 ## Install
 
 ```bash
@@ -36,6 +43,10 @@ Then configure interactively in pi:
 ```
 
 No JSON editing required. The TUI only shows providers/models actually present in your registry (`pi --list-models`).
+
+![/fallback-config — provider list](assets/fallback-config.png)
+
+A `✓` marks a provider enabled for fallback, `✗` disabled. Press `Enter` on a provider to pick up to two fallback models and assign them priority `1` / `2`.
 
 ## TUI controls
 
@@ -71,11 +82,15 @@ Stored at `~/.pi/agent/extensions/provider-fallback.json` (override with `PI_PRO
 
 ## Testing fallback
 
-Set your default model to `anthropic/claude-fable-5` (always 404s) and send a prompt. You should see:
+Set your default model to `anthropic/claude-fable-5` and send a prompt. As of **2026-06-21** this is a convenient deterministic test: Anthropic has disabled the model, so it **always 404s** and reliably triggers fallback. This may change in future — if the model is re-enabled or removed, pick any other unavailable model id.
+
+You should see:
 
 ```
 [fallback] anthropic/claude-fable-5 failed (unavailable) → anthropic/claude-opus-4-8
 ```
+
+** The `→ anthropic/claude-opus-4-8` target appears only if `claude-opus-4-8` is configured as an `anthropic` fallback model. With a different anthropic fallback (or none, falling through to another provider) the target reflects whatever you configured.
 
 Self-check the classifier: `npx tsx provider-fallback.ts --selfcheck`
 
