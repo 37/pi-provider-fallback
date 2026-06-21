@@ -16,7 +16,6 @@ import { join } from "node:path";
 import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import {
 	matchesKey,
-	truncateToWidth,
 	visibleWidth,
 	type Component,
 	type Focusable,
