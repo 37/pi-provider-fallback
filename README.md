@@ -2,13 +2,13 @@
 
 Cross-provider model fallback for [pi](https://github.com/earendil-works/pi-coding-agent), with an interactive TUI config.
 
-When the active model hits a terminal **transient**, **quota**, or **model-unavailable** error, the extension swaps to the next configured fallback model — trying the **same provider first**, then other providers — and re-issues the failed prompt. The swap is sticky for the session; the original model is restored on shutdown.
+When the active model hits a terminal **transient**, **quota**, or **model-unavailable** error, the extension swaps to the next configured fallback model (trying the **same provider first**, then other providers) and re-issues the failed prompt. The swap is sticky for the session; the original model is restored on shutdown.
 
 At a glance:
 
-- This is a **pi extension** — it loads into pi and adds the `/fallback-config` and `/fallback-status` commands.
-- Options **draw from your available providers** (the ones in `pi --list-models`) — nothing invented.
-- **Providers are enabled for fallback per your preference** — opt each one in or out.
+- This is a **pi extension**. It adds the `/fallback-config` and `/fallback-status` commands.
+- Options **draw from your available providers** (those in `pi --list-models`).
+- **Providers are enabled for fallback per your preference**: opt each one in or out.
 - **Up to two models per provider** can be set as your **1st** and **2nd** fallback preference.
 
 ## Install
@@ -38,13 +38,13 @@ pi -e ./provider-fallback.ts          # quick test, no settings change
 Then configure interactively in pi:
 
 ```
-/fallback-config      # interactive TUI — set fallback models per provider
+/fallback-config      # interactive TUI to set fallback models per provider
 /fallback-status      # view current config
 ```
 
-No JSON editing required. The TUI only shows providers/models actually present in your registry (`pi --list-models`).
+No JSON editing required. The TUI only shows providers and models present in your registry (`pi --list-models`).
 
-![/fallback-config — provider list](assets/fallback-config.png)
+![fallback-config provider list](assets/fallback-config.png)
 
 A `✓` marks a provider enabled for fallback, `✗` disabled. Press `Enter` on a provider to pick up to two fallback models and assign them priority `1` / `2`.
 
@@ -78,11 +78,11 @@ The pointer is forward-only per session (never retries an already-failed fallbac
 
 ## Config
 
-Stored at `~/.pi/agent/extensions/provider-fallback.json` (override with `PI_PROVIDER_FALLBACK_CONFIG`). Managed by the TUI — see `provider-fallback.example.json` for the shape.
+Stored at `~/.pi/agent/extensions/provider-fallback.json` (override with `PI_PROVIDER_FALLBACK_CONFIG`). Managed by the TUI; see `provider-fallback.example.json` for the shape.
 
 ## Testing fallback
 
-Set your default model to `anthropic/claude-fable-5` and send a prompt. As of **2026-06-21** this is a convenient deterministic test: Anthropic has disabled the model, so it **always 404s** and reliably triggers fallback. This may change in future — if the model is re-enabled or removed, pick any other unavailable model id.
+Set your default model to `anthropic/claude-fable-5` and send a prompt. As of **2026-06-21** this is a convenient deterministic test: Anthropic has disabled the model, so it **always 404s** and reliably triggers fallback. This may change in future; if the model is re-enabled or removed, pick any other unavailable model id.
 
 You should see:
 
