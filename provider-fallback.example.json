@@ -1,0 +1,8 @@
+{
+  "enabled": true,
+  "chain": [
+    { "provider": "anthropic", "model": "claude-opus-4-6", "thinking": "high" },
+    { "provider": "openai", "model": "gpt-5" },
+    { "provider": "google", "model": "gemini-3-pro" }
+  ]
+}

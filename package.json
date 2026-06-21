@@ -1,0 +1,19 @@
+{
+  "name": "pi-provider-fallback",
+  "version": "0.1.0",
+  "description": "Cross-provider model fallback extension for pi",
+  "type": "module",
+  "exports": {
+    ".": "./provider-fallback.ts"
+  },
+  "keywords": ["pi", "extension", "model-fallback", "provider-fallback", "auto-retry"],
+  "author": "k",
+  "license": "MIT",
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "^1.0.0"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typescript": "^5.0.0"
+  }
+}
