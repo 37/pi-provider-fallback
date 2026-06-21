@@ -1,30 +1,41 @@
 {
   "name": "pi-provider-fallback",
-  "version": "0.1.0",
-  "description": "Cross-provider model fallback extension for pi",
+  "version": "2.0.0",
+  "description": "Cross-provider model fallback for pi, with an interactive TUI config",
   "type": "module",
   "exports": {
     ".": "./provider-fallback.ts"
   },
-  "keywords": ["pi-package", "pi", "extension", "model-fallback", "provider-fallback", "auto-retry"],
+  "keywords": [
+    "pi-package",
+    "pi",
+    "extension",
+    "model-fallback",
+    "provider-fallback",
+    "auto-retry"
+  ],
   "author": "k",
   "license": "MIT",
   "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "^1.0.0"
+    "@earendil-works/pi-coding-agent": "^1.0.0",
+    "@earendil-works/pi-tui": "*"
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "*",
-    "typescript": "^5.0.0"
+    "@earendil-works/pi-tui": "*",
+    "typescript": "^5.9.3"
   },
   "pi": {
-    "extensions": ["./provider-fallback.ts"]
+    "extensions": [
+      "./provider-fallback.ts"
+    ]
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/[user]/pi-provider-fallback"
+    "url": "https://github.com/earendil-works/pi-provider-fallback"
   },
-  "homepage": "https://github.com/[user]/pi-provider-fallback#readme",
+  "homepage": "https://github.com/earendil-works/pi-provider-fallback#readme",
   "bugs": {
-    "url": "https://github.com/[user]/pi-provider-fallback/issues"
+    "url": "https://github.com/earendil-works/pi-provider-fallback/issues"
   }
 }

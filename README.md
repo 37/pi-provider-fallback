@@ -1,102 +1,66 @@
 # pi-provider-fallback
 
-Cross-provider model fallback extension for [pi](https://github.com/earendil-works/pi-coding-agent).
+Cross-provider model fallback for [pi](https://github.com/earendil-works/pi-coding-agent), with an interactive TUI config.
 
-Watches for terminal transient/quota errors and automatically swaps the active model to the next entry in a user-configured fallback chain, then re-issues the failed prompt. The fallback is sticky for the session and the original model is restored on shutdown.
+When the active model hits a terminal **transient**, **quota**, or **model-unavailable** error, the extension swaps to the next configured fallback model — trying the **same provider first**, then other providers — and re-issues the failed prompt. The swap is sticky for the session; the original model is restored on shutdown.
 
 ## Setup
 
-1. Clone or install this extension
-2. Copy `provider-fallback.example.json` to `~/.pi/agent/extensions/provider-fallback.json`
-3. Edit the `chain` with your preferred fallback providers/models
-4. Restart pi
+```bash
+pi -e ./provider-fallback.ts          # quick test
+# or drop into ~/.pi/agent/extensions/ for auto-discovery + /reload
+```
+
+Then configure interactively in pi:
+
+```
+/fallback-config      # interactive TUI — set fallback models per provider
+/fallback-status      # view current config
+```
+
+No JSON editing required. The TUI only shows providers/models actually present in your registry (`pi --list-models`).
+
+## TUI controls
+
+Provider list:
+- `↑↓` navigate · `Enter` configure provider · `Esc` close
+
+Provider menu:
+- `↑↓` navigate models · `1`/`2` set priority · `Space` toggle · `e` enable/disable provider · `Esc` back
+
+Changes auto-save on every action.
+
+## How fallback works
+
+On an eligible error for `providerA/modelX`:
+1. Try `providerA`'s other configured fallbacks (priority 1, then 2).
+2. If exhausted, try other enabled providers' fallbacks.
+3. If nothing is available: `[fallback] no fallback available`.
+
+The pointer is forward-only per session (never retries an already-failed fallback).
+
+## Error classification
+
+| Bucket | Triggers fallback | Examples |
+|--------|-------------------|----------|
+| transient | yes | overloaded, rate-limit, 429/5xx, network/timeout |
+| quota | yes | usage limit, billing, insufficient quota |
+| unavailable | yes | 404 not_found, "model is not available", invalid model |
+| ignore | no | context overflow, user abort |
 
 ## Config
 
-`~/.pi/agent/extensions/provider-fallback.json`:
-```json
-{
-  "enabled": true,
-  "chain": [
-    { "provider": "anthropic", "model": "claude-opus-4-6", "thinking": "high" },
-    { "provider": "openai", "model": "gpt-5" },
-    { "provider": "google", "model": "gemini-3-pro" }
-  ]
-}
-```
+Stored at `~/.pi/agent/extensions/provider-fallback-v2.json` (override with `PI_PROVIDER_FALLBACK_CONFIG`). Managed by the TUI — see `provider-fallback.example.json` for the shape.
 
-Each chain entry:
-- `provider` (string, required): provider id (e.g. `anthropic`, `openai`, `google`)
-- `model` (string, required): model id (e.g. `claude-opus-4-6`, `gpt-5`)
-- `thinking` (string, optional): thinking level to set on swap (`off`, `minimal`, `low`, `medium`, `high`, `xhigh`)
+## Testing fallback
 
-## Usage
-
-The extension is enabled when the config is present and `enabled: true`.
-
-**When to fallback:**
-- Transient errors (provider overloaded, rate-limited, network error, 5xx)
-- Quota/usage-limit errors
-
-**When NOT to fallback:**
-- Context-overflow (compaction owns this)
-- Other errors
-
-**Commands:**
-- `/fallback` — show chain, active model, and current position
-
-## Behavior
+Set your default model to `anthropic/claude-fable-5` (always 404s) and send a prompt. You should see:
 
 ```
-anthropic/claude-opus-4-6 fails (overloaded)
-↓ (host backs off same-model, still fails)
-↓ extension swaps to openai/gpt-5 and re-issues:
-
-[fallback] anthropic/claude-opus-4-6 failed (transient) → openai/gpt-5 (2/3)
-
-openai/gpt-5 fails (quota limit reached)
-↓
-[fallback] openai/gpt-5 failed (quota) → google/gemini-3-pro (3/3)
-
-google/gemini-3-pro fails
-↓
-[fallback] chain exhausted (3/3) — staying on google/gemini-3-pro
+[fallback] anthropic/claude-fable-5 failed (unavailable) → anthropic/claude-opus-4-8
 ```
 
-## Architecture Notes
-
-**Pure extension:** survives pi package updates. No compiled-dist edits.
-
-**Compromises:**
-- Fallback order = extension config (host `--models` scoped order not exposed to extensions)
-- Each swap persists the default to disk; mitigated by capturing the original model at session start and restoring it on shutdown
-- Fallback fires only after the host's same-model backoff completes (host retry seam is internal)
-
-**Safety invariants:**
-- Forward-only pointer (never wraps)
-- Exhaustion latch (exactly one "chain exhausted" notice, then no-op)
-- Original model restoration on shutdown (unless auth expires)
-
-## Testing
-
-Manual checklist (automated unit tests not shipped, matching sibling extensions in pi):
-
-- [ ] With no `provider-fallback.json`, pi starts normally and extension is inert
-- [ ] After adding config, extension loads without error (check with `/reload`)
-- [ ] Transient failure → shows fallback notice and re-runs on chain[0]
-- [ ] Quota failure → swaps to next entry
-- [ ] All entries failing → exactly one "chain exhausted" notice, no infinite loop
-- [ ] Context-overflow → does NOT trigger fallback
-- [ ] Subsequent turns after fallback → stay on fallback model (sticky)
-- [ ] Shutdown → original model restored (check settings)
-- [ ] `/fallback` command → shows chain, active model, position marker
-
-## Type-checking
-
-Requires TypeScript 5.0+:
-```bash
-npx tsc --noEmit --esModuleInterop --module nodenext --moduleResolution nodenext provider-fallback.ts
-```
+Self-check the classifier: `npx tsx provider-fallback.ts --selfcheck`
 
 ## License
 

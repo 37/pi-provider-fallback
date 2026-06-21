@@ -1,8 +1,18 @@
 {
   "enabled": true,
-  "chain": [
-    { "provider": "anthropic", "model": "claude-opus-4-6", "thinking": "high" },
-    { "provider": "openai", "model": "gpt-5" },
-    { "provider": "google", "model": "gemini-3-pro" }
-  ]
+  "providers": {
+    "anthropic": {
+      "enabled": true,
+      "fallbacks": [
+        { "model": "claude-opus-4-8", "priority": 1 },
+        { "model": "claude-haiku-4-5", "priority": 2 }
+      ]
+    },
+    "openai-codex": {
+      "enabled": true,
+      "fallbacks": [
+        { "model": "gpt-5.5", "priority": 1 }
+      ]
+    }
+  }
 }
