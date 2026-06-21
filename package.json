@@ -1,6 +1,6 @@
 {
   "name": "pi-provider-fallback",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "description": "Cross-provider model fallback for pi, with an interactive TUI config",
   "type": "module",
   "exports": {

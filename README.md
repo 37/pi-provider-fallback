@@ -20,7 +20,7 @@ pi install git:github.com/37/pi-provider-fallback
 Pin to a tag or commit, or use a raw URL:
 
 ```bash
-pi install git:github.com/37/pi-provider-fallback@v2.0.0
+pi install git:github.com/37/pi-provider-fallback@v1.0.0
 pi install https://github.com/37/pi-provider-fallback
 ```
 
