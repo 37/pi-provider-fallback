@@ -1,8 +1,8 @@
 # pi-provider-fallback
 
-Cross-provider model fallback for [pi](https://github.com/earendil-works/pi-coding-agent), with an interactive TUI config.
+A simple cross-provider model fallback extension for [pi](https://github.com/earendil-works/pi-coding-agent), with an interactive TUI config.
 
-When the active model hits a terminal **transient**, **quota**, or **model-unavailable** error, the extension swaps to the next configured fallback model (trying the **same provider first**, then other providers) and re-issues the failed prompt. The swap is sticky for the session; the original model is restored on shutdown.
+When the active model hits a terminal **transient**, **quota**, or **model-unavailable** error, the extension swaps to the next configured fallback model (trying the **same provider first**, then other providers) and re-issues the failed prompt. The swap is sticky for the session; the original model is restored on shutdown or at /reload.
 
 At a glance:
 
@@ -14,21 +14,22 @@ At a glance:
 ## Install
 
 ```bash
+# via npm
 pi install npm:pi-provider-fallback
+
+# via git
+pi install git:github.com/37/pi-provider-fallback
 ```
 
 This adds the extension to `~/.pi/agent/settings.json` (use `-l` to write project-local `.pi/settings.json` instead).
 
-Alternatively install from git, optionally pinned to a tag or commit:
+Alternatively you can install from local, or remote using specific versions pinned to a tag or commit:
 
 ```bash
-pi install git:github.com/37/pi-provider-fallback
+# specific git version
 pi install git:github.com/37/pi-provider-fallback@v1.0.1
-```
 
-### Local / dev
-
-```bash
+# Local / dev
 pi -e ./provider-fallback.ts   # run once from a clone, no settings change
 ```
 
@@ -41,21 +42,15 @@ Configure interactively in pi:
 /fallback-status      # view current config
 ```
 
+### Configuration / setup with TUI
+
 No JSON editing required. The TUI only shows providers and models present in your registry (`pi --list-models`).
 
 ![fallback-config provider list](assets/fallback-config.png)
 
 A `✓` marks a provider enabled for fallback, `✗` disabled. Press `Enter` on a provider to pick up to two fallback models and assign them priority `1` / `2`.
 
-## TUI controls
-
-Provider list:
-- `↑↓` navigate · `Enter` configure provider · `Esc` close
-
-Provider menu:
-- `↑↓` navigate models · `1`/`2` set priority · `Space` toggle · `e` enable/disable provider · `Esc` back
-
-Changes auto-save on every action.
+Note: /fallback-config will automatically save changes on every action. No ctrl+s required.
 
 ## How fallback works
 
