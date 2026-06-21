@@ -6,7 +6,7 @@
  * re-issues the failed prompt. Sticky for the session; original model restored on exit.
  *
  * Config: `/fallback-config` (interactive TUI). View: `/fallback-status`.
- * Stored at ~/.pi/agent/extensions/provider-fallback-v2.json
+ * Stored at ~/.pi/agent/extensions/provider-fallback.json
  * (override with PI_PROVIDER_FALLBACK_CONFIG).
  */
 
@@ -23,7 +23,7 @@ import {
 } from "@earendil-works/pi-tui";
 
 const CONFIG_PATH = process.env["PI_PROVIDER_FALLBACK_CONFIG"] ??
-	join(homedir(), ".pi", "agent", "extensions", "provider-fallback-v2.json");
+	join(homedir(), ".pi", "agent", "extensions", "provider-fallback.json");
 
 interface ProviderConfig {
 	enabled: boolean;
@@ -75,7 +75,7 @@ function classify(errorMessage: string | undefined): Bucket {
 	return "ignore";
 }
 
-// ponytail: self-check for classify(); run with `npx tsx provider-fallback-v2.ts --selfcheck`
+// ponytail: self-check for classify(); run with `npx tsx provider-fallback.ts --selfcheck`
 if (process.argv.includes("--selfcheck")) {
 	const assert = (c: boolean, m: string) => {
 		if (!c) throw new Error("selfcheck failed: " + m);

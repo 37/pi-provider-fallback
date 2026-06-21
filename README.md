@@ -50,7 +50,7 @@ The pointer is forward-only per session (never retries an already-failed fallbac
 
 ## Config
 
-Stored at `~/.pi/agent/extensions/provider-fallback-v2.json` (override with `PI_PROVIDER_FALLBACK_CONFIG`). Managed by the TUI — see `provider-fallback.example.json` for the shape.
+Stored at `~/.pi/agent/extensions/provider-fallback.json` (override with `PI_PROVIDER_FALLBACK_CONFIG`). Managed by the TUI — see `provider-fallback.example.json` for the shape.
 
 ## Testing fallback
 
