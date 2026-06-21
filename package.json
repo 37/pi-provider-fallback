@@ -6,7 +6,7 @@
   "exports": {
     ".": "./provider-fallback.ts"
   },
-  "keywords": ["pi", "extension", "model-fallback", "provider-fallback", "auto-retry"],
+  "keywords": ["pi-package", "pi", "extension", "model-fallback", "provider-fallback", "auto-retry"],
   "author": "k",
   "license": "MIT",
   "peerDependencies": {
@@ -15,5 +15,16 @@
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "*",
     "typescript": "^5.0.0"
+  },
+  "pi": {
+    "extensions": ["./provider-fallback.ts"]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/[user]/pi-provider-fallback"
+  },
+  "homepage": "https://github.com/[user]/pi-provider-fallback#readme",
+  "bugs": {
+    "url": "https://github.com/[user]/pi-provider-fallback/issues"
   }
 }
