@@ -317,6 +317,106 @@ npm ls @earendil-works/pi-coding-agent
 - **Implementation plan**: `.rpiv/artifacts/plans/2026-06-20_21-29-00_provider-fallback.md`
 - **Code review**: `.rpiv/artifacts/reviews/2026-06-20_23-51-09_provider-fallback.md`
 
+## Distribution & Installation
+
+### For Local Testing
+
+Install from your local project folder:
+```bash
+pi install ~/Tools/applications/pi/extensions/pi-provider-fallback
+```
+
+Or test without installing:
+```bash
+pi -e ~/Tools/applications/pi/extensions/pi-provider-fallback
+```
+
+### Publishing to npm
+
+1. **Update version** in `package.json`
+2. **Push to git** (github/gitlab/etc.)
+3. **Publish to npm**:
+   ```bash
+   npm login
+   npm publish
+   ```
+4. **Users can then install**:
+   ```bash
+   pi install npm:pi-provider-fallback
+   # or scoped:
+   pi install npm:@yourname/pi-provider-fallback
+   ```
+
+### Publishing to git (GitHub, GitLab, etc.)
+
+1. **Create repo** on GitHub/GitLab and push this folder
+2. **Tag a release**:
+   ```bash
+   git tag v0.1.0
+   git push origin v0.1.0
+   ```
+3. **Users can install**:
+   ```bash
+   pi install git:github.com/yourname/pi-provider-fallback
+   # or with version:
+   pi install git:github.com/yourname/pi-provider-fallback@v0.1.0
+   ```
+
+### Package Manifest
+
+The `package.json` includes a `pi` field that declares what this package provides:
+
+```json
+"pi": {
+  "extensions": ["./provider-fallback.ts"]
+}
+```
+
+This tells `pi install` to load `provider-fallback.ts` as an extension. You can also add:
+- `"skills": ["./skills/**/*.ts"]` — skill files
+- `"prompts": ["./prompts/**/*.md"]` — prompt templates
+- `"themes": ["./themes/**/*.json"]` — theme definitions
+
+The `pi-package` keyword makes the package discoverable in the [pi package gallery](https://pi.dev/packages).
+
+### Install Methods
+
+After publishing, users can install via:
+
+| Method | Command | Notes |
+|--------|---------|-------|
+| **Local path** | `pi install ~/path/to/pi-provider-fallback` | For development |
+| **npm** | `pi install npm:pi-provider-fallback` | After publishing to npm |
+| **npm (scoped)** | `pi install npm:@user/pi-provider-fallback` | Recommended for personal pkgs |
+| **GitHub HTTPS** | `pi install https://github.com/user/pi-provider-fallback` | No auth needed |
+| **GitHub SSH** | `pi install git:git@github.com:user/pi-provider-fallback` | Requires SSH keys |
+| **Git shorthand** | `pi install git:github.com/user/pi-provider-fallback@v0.1.0` | With pinned version tag |
+| **Temporary** | `pi -e npm:pi-provider-fallback` | Try without installing |
+
+### GitHub Release Workflow
+
+Recommended for managing versions:
+
+```bash
+# Bump version in package.json
+vi package.json  # e.g., 0.1.0 → 0.2.0
+
+# Commit and tag
+git add package.json
+git commit -m "Bump version to 0.2.0"
+git tag v0.2.0
+git push
+git push origin v0.2.0
+
+# Create GitHub release (optional, for visibility)
+# https://github.com/user/pi-provider-fallback/releases/new
+```
+
+Users can then pin to that version:
+```bash
+pi install git:github.com/user/pi-provider-fallback@v0.2.0
+```
+
 ## Maintenance Checklist
 
 When making changes:
@@ -328,3 +428,5 @@ When making changes:
 - [ ] Update this file if new extension points or pitfalls emerge
 - [ ] Run `tsc --noEmit` to catch type errors
 - [ ] Verify the extension still loads: `pi -e provider-fallback.ts --list-models >/dev/null`
+- [ ] Bump version in `package.json` before publishing
+- [ ] Tag release in git: `git tag v<version> && git push origin v<version>`
