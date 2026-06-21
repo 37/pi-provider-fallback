@@ -2,7 +2,7 @@
 
 A simple cross-provider model fallback extension for [pi](https://github.com/earendil-works/pi-coding-agent), with an interactive TUI config.
 
-When the active model hits a terminal **transient**, **quota**, or **model-unavailable** error, the extension swaps to the next configured fallback model (trying the **same provider first**, then other providers) and re-issues the failed prompt. The swap is sticky for the session; the original model is restored on shutdown or at /reload.
+When the active model hits a terminal **transient**, **quota**, or **model-unavailable** error, the extension swaps to the next configured fallback model (trying the **same provider first**, then other providers) and re-issues the failed prompt. If fallback switches to a model with a smaller context window, the extension triggers pi compaction first when the current context would be too large. The swap is sticky for the session; the original model is restored on shutdown or at `/reload`.
 
 At a glance:
 
@@ -27,7 +27,7 @@ Alternatively you can install from local, or remote using specific versions pinn
 
 ```bash
 # specific git version
-pi install git:github.com/37/pi-provider-fallback@v1.0.1
+pi install git:github.com/37/pi-provider-fallback@v1.0.3
 
 # Local / dev
 pi -e ./provider-fallback.ts   # run once from a clone, no settings change
@@ -50,7 +50,7 @@ No JSON editing required. The TUI only shows providers and models present in you
 
 A `✓` marks a provider enabled for fallback, `✗` disabled. Press `Enter` on a provider to pick up to two fallback models and assign them priority `1` / `2`.
 
-Note: /fallback-config will automatically save changes on every action. No ctrl+s required.
+Note: `/fallback-config` automatically saves changes on every action. No `ctrl+s` required.
 
 ## How fallback works
 
@@ -59,7 +59,11 @@ On an eligible error for `providerA/modelX`:
 2. If exhausted, try other enabled providers' fallbacks.
 3. If nothing is available: `[fallback] no fallback available`.
 
-The pointer is forward-only per session (never retries an already-failed fallback).
+The pointer is forward-only per session (never retries an already-failed fallback). If the target fallback has a smaller context window and the current context is too large, compaction runs before the retry.
+
+![fallback process in action](assets/fallback-in-action.png)
+
+The screenshot shows a rate-limit error falling back first within Anthropic, then across providers after the second rate-limit. Request IDs are redacted.
 
 ## Error classification
 

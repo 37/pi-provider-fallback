@@ -185,16 +185,56 @@ export default function (pi: ExtensionAPI) {
 				`[fallback] ${failed} failed (${bucket}) → ${current.provider}/${entry.model}`,
 				"warning",
 			);
-			if (ctx.isIdle()) {
-				pi.sendUserMessage(lastUserContent);
-			} else {
-				pi.sendUserMessage(lastUserContent, { deliverAs: "followUp" });
-			}
+			retryAfterMaybeCompacting(ctx, current, model, `${current.provider}/${entry.model}`);
 			return;
 		}
 
 		return tryOtherProviders(ctx, failed, bucket);
 	});
+
+	function retryLastUserMessage(ctx: any) {
+		if (lastUserContent === undefined) return;
+		if (ctx.isIdle()) {
+			pi.sendUserMessage(lastUserContent);
+		} else {
+			pi.sendUserMessage(lastUserContent, { deliverAs: "followUp" });
+		}
+	}
+
+	function retryAfterMaybeCompacting(ctx: any, fromModel: any, toModel: any, target: string) {
+		const fromWindow = typeof fromModel?.contextWindow === "number" ? fromModel.contextWindow : undefined;
+		const toWindow = typeof toModel?.contextWindow === "number" ? toModel.contextWindow : undefined;
+		const usage = typeof ctx.getContextUsage === "function" ? ctx.getContextUsage() : undefined;
+		const tokens = typeof usage?.tokens === "number" ? usage.tokens : undefined;
+		const reserveTokens = 16_384;
+		const needsCompaction =
+			fromWindow !== undefined &&
+			toWindow !== undefined &&
+			fromWindow > toWindow &&
+			tokens !== undefined &&
+			tokens > Math.max(0, toWindow - reserveTokens);
+
+		if (!needsCompaction || typeof ctx.compact !== "function") {
+			retryLastUserMessage(ctx);
+			return;
+		}
+
+		ctx.ui.notify(
+			`[fallback] compacting before retry: ${tokens}/${toWindow} tokens for ${target}`,
+			"warning",
+		);
+		ctx.compact({
+			customInstructions: `Preserve details needed to continue after fallback to ${target}.`,
+			onComplete: () => {
+				ctx.ui.notify(`[fallback] compaction complete → retrying on ${target}`, "info");
+				retryLastUserMessage(ctx);
+			},
+			onError: (error: Error) => {
+				ctx.ui.notify(`[fallback] compaction failed: ${error.message}. Retrying anyway.`, "warning");
+				retryLastUserMessage(ctx);
+			},
+		});
+	}
 
 	async function tryOtherProviders(ctx: any, failed: string, bucket: Bucket) {
 		const current = ctx.model;
@@ -222,11 +262,7 @@ export default function (pi: ExtensionAPI) {
 					`[fallback] ${failed} failed (${bucket}) → ${provider}/${entry.model}`,
 					"warning",
 				);
-				if (ctx.isIdle()) {
-					pi.sendUserMessage(lastUserContent);
-				} else {
-					pi.sendUserMessage(lastUserContent, { deliverAs: "followUp" });
-				}
+				retryAfterMaybeCompacting(ctx, current, model, `${provider}/${entry.model}`);
 				return;
 			}
 		}
