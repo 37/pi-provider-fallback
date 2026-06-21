@@ -14,28 +14,27 @@ At a glance:
 ## Install
 
 ```bash
-pi install git:github.com/37/pi-provider-fallback
-```
-
-Pin to a tag or commit, or use a raw URL:
-
-```bash
-pi install git:github.com/37/pi-provider-fallback@v1.0.0
-pi install https://github.com/37/pi-provider-fallback
+pi install npm:pi-provider-fallback
 ```
 
 This adds the extension to `~/.pi/agent/settings.json` (use `-l` to write project-local `.pi/settings.json` instead).
 
-<details>
-<summary>Local / dev install</summary>
+Alternatively install from git, optionally pinned to a tag or commit:
 
 ```bash
-pi -e ./provider-fallback.ts          # quick test, no settings change
-# or drop into ~/.pi/agent/extensions/ for auto-discovery + /reload
+pi install git:github.com/37/pi-provider-fallback
+pi install git:github.com/37/pi-provider-fallback@v1.0.1
 ```
-</details>
 
-Then configure interactively in pi:
+### Local / dev
+
+```bash
+pi -e ./provider-fallback.ts   # run once from a clone, no settings change
+```
+
+## Usage
+
+Configure interactively in pi:
 
 ```
 /fallback-config      # interactive TUI to set fallback models per provider
@@ -90,7 +89,7 @@ You should see:
 [fallback] anthropic/claude-fable-5 failed (unavailable) → anthropic/claude-opus-4-8
 ```
 
-** The `→ anthropic/claude-opus-4-8` target appears only if `claude-opus-4-8` is configured as an `anthropic` fallback model. With a different anthropic fallback (or none, falling through to another provider) the target reflects whatever you configured.
+> Note: the `→ anthropic/claude-opus-4-8` target appears only if `claude-opus-4-8` is configured as an `anthropic` fallback model. With a different anthropic fallback (or none, falling through to another provider) the target reflects whatever you configured.
 
 Self-check the classifier: `npx tsx provider-fallback.ts --selfcheck`
 
