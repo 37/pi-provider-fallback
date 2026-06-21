@@ -32,10 +32,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/earendil-works/pi-provider-fallback"
+    "url": "https://github.com/37/pi-provider-fallback"
   },
-  "homepage": "https://github.com/earendil-works/pi-provider-fallback#readme",
+  "homepage": "https://github.com/37/pi-provider-fallback#readme",
   "bugs": {
-    "url": "https://github.com/earendil-works/pi-provider-fallback/issues"
+    "url": "https://github.com/37/pi-provider-fallback/issues"
   }
 }
