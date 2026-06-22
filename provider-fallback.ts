@@ -97,8 +97,12 @@ export default function (pi: ExtensionAPI) {
 	pi.on("session_start", async (_event, ctx) => {
 		config = loadConfig();
 
+		// Capture the user's true default ONCE per real session. A stage-driven
+		// newSession (rpiv model-override, subagents) re-fires session_start carrying
+		// an override model; re-capturing would make that override the restore target,
+		// and setModel persists it as the global default. Cleared in session_shutdown.
 		const current = ctx.model;
-		if (current && typeof current.provider === "string" && typeof current.id === "string") {
+		if (!originalModel && current && typeof current.provider === "string" && typeof current.id === "string") {
 			originalModel = { provider: current.provider, id: current.id };
 		}
 
@@ -131,6 +135,7 @@ export default function (pi: ExtensionAPI) {
 		if (!originalModel) return;
 		const current = ctx.model;
 		if (current && current.provider === originalModel.provider && current.id === originalModel.id) {
+			originalModel = undefined; // already at baseline; clear so next real session re-captures
 			return;
 		}
 		const restore = ctx.modelRegistry.find(originalModel.provider, originalModel.id);
@@ -143,6 +148,7 @@ export default function (pi: ExtensionAPI) {
 				);
 			}
 		}
+		originalModel = undefined; // clear so the next real session_start re-captures fresh
 	});
 
 	pi.on("message_end", async (event) => {
