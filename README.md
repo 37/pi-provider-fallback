@@ -7,7 +7,7 @@ When the active model hits a terminal **transient**, **quota**, or **model-unava
 At a glance:
 
 - This is a **pi extension**. It adds the `/fallback-config` and `/fallback-status` commands.
-- Options **draw from your available providers** (those in `pi --list-models`).
+- Options **draw from your session model list** (`/scoped-models`, or the full `pi --list-models` catalogue when no scoping is set), so new models appear without an extension update.
 - **Providers are enabled for fallback per your preference**: opt each one in or out.
 - **Up to two models per provider** can be set as your **1st** and **2nd** fallback preference.
 
@@ -44,7 +44,7 @@ Configure interactively in pi:
 
 ### Configuration / setup with TUI
 
-No JSON editing required. The TUI only shows providers and models present in your registry (`pi --list-models`).
+No JSON editing required. The TUI lists providers and models from your session model list: the `/scoped-models` set when scoping is configured, else every available model (`pi --list-models`). Models you already configured stay listed even if they leave the catalogue, so you can remove them.
 
 ![fallback-config provider list](assets/fallback-config.png)
 

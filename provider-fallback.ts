@@ -66,6 +66,16 @@ const UNAVAILABLE_RE =
 
 type Bucket = "transient" | "quota" | "unavailable" | "ignore";
 
+/**
+ * Models usable in this session: the `/scoped-models` set when scoping is
+ * configured, else the full available catalogue. Source of truth for the
+ * config UI, so new models show up without a code change.
+ */
+function sessionModels(ctx: { scopedModels: readonly { model: { provider: string; id: string } }[]; modelRegistry: { getAvailable(): { provider: string; id: string }[] } }): { provider: string; id: string }[] {
+	const scoped = ctx.scopedModels ?? [];
+	return scoped.length > 0 ? scoped.map((s) => s.model) : ctx.modelRegistry.getAvailable();
+}
+
 function classify(errorMessage: string | undefined): Bucket {
 	if (!errorMessage) return "ignore";
 	if (QUOTA_RE.test(errorMessage)) return "quota";
@@ -84,7 +94,18 @@ if (process.argv.includes("--selfcheck")) {
 	assert(classify("Monthly usage limit reached") === "quota", "quota");
 	assert(classify("context length exceeded") === "ignore", "ignore");
 	assert(classify(undefined) === "ignore", "undefined");
-	console.log("✓ classify selfcheck passed");
+
+	const avail = [{ provider: "anthropic", id: "fable" }, { provider: "openai", id: "gpt-6" }];
+	const reg = { modelRegistry: { getAvailable: () => avail } };
+	assert(
+		JSON.stringify(sessionModels({ scopedModels: [], ...reg })) === JSON.stringify(avail),
+		"unscoped falls back to available",
+	);
+	assert(
+		sessionModels({ scopedModels: [{ model: avail[0]! }], ...reg }).length === 1,
+		"scoped wins over available",
+	);
+	console.log("✓ classify + sessionModels selfcheck passed");
 	process.exit(0);
 }
 
@@ -360,37 +381,10 @@ class FallbackConfigComponent implements Component, Focusable {
 		this.theme = theme;
 		this.done = done;
 
-		// Only show providers that have at least one available model
-		const allProviders = new Set<string>();
-
-		// Add configured providers
-		for (const p of Object.keys(config.providers)) {
-			allProviders.add(p);
-		}
-
-		// Add providers that have available models
-		const candidateProviders = [
-			"anthropic",
-			"openai",
-			"openai-codex",
-			"google",
-			"deepseek",
-			"cohere",
-		];
-		const testModels: Record<string, string[]> = {
-			anthropic: ["claude-opus-4-8", "claude-opus-4-6"],
-			openai: ["gpt-4-turbo", "gpt-4o"],
-			"openai-codex": ["gpt-5.5", "gpt-5.4"],
-			google: ["gemini-2.5-flash", "gemini-2.0-flash"],
-			deepseek: ["deepseek-v4-flash", "deepseek-v4-pro"],
-			cohere: ["command-r-plus"],
-		};
-		for (const provider of candidateProviders) {
-			const models = testModels[provider] ?? [];
-			const hasAvailable = models.some((m: string) => ctx.modelRegistry.find(provider, m));
-			if (hasAvailable) {
-				allProviders.add(provider);
-			}
+		// Providers come from the live model list, plus anything already configured.
+		const allProviders = new Set<string>(Object.keys(config.providers));
+		for (const model of sessionModels(ctx)) {
+			allProviders.add(model.provider);
 		}
 
 		this.providers = Array.from(allProviders).sort();
@@ -598,58 +592,13 @@ class FallbackConfigComponent implements Component, Focusable {
 	}
 
 	private getKnownModels(provider: string): string[] {
-		// Comprehensive list of candidate models to check
-		const candidateModels: Record<string, string[]> = {
-		anthropic: [
-			"claude-opus-4-8",
-			"claude-opus-4-7",
-			"claude-opus-4-6",
-			"claude-opus-4-5",
-			"claude-sonnet-4-6",
-			"claude-sonnet-4-5",
-			"claude-haiku-4-5",
-		],
-		openai: [
-			"gpt-4-turbo",
-			"gpt-4o",
-			"gpt-4o-mini",
-		],
-		"openai-codex": [
-			"gpt-5.5",
-			"gpt-5.4",
-			"gpt-5.4-mini",
-			"gpt-5.3-codex-spark",
-		],
-		google: [
-			"gemini-3.5-flash",
-			"gemini-2.5-flash",
-			"gemini-2.0-flash",
-			"gemini-2.5-pro",
-			"gemma-4-31b-it",
-		],
-		deepseek: [
-			"deepseek-v4-pro",
-			"deepseek-v4-flash",
-		],
-		cohere: [
-			"command-r-plus",
-			"command-r",
-		],
-	};
-
-		const configuredModels = this.config.providers[provider]?.fallbacks.map((f) => f.model) ?? [];
-		const candidates = candidateModels[provider] ?? [];
-		const allArray = Array.from(new Set<string>([...candidates, ...configuredModels]));
-
-		// Filter to only models that actually exist in the registry
-		const available: string[] = [];
-		for (const model of allArray) {
-			if (this.ctx.modelRegistry.find(provider, model)) {
-				available.push(model);
-			}
-		}
-
-		// If no models found in registry, return candidates anyway (so user can see options)
-		return available.length > 0 ? available.sort() : allArray.sort();
+		// Live model list from /scoped-models (or the full catalogue), filtered to
+		// this provider. Already-configured ids stay listed even when unavailable,
+		// so a stale fallback is still visible and removable.
+		const live = sessionModels(this.ctx)
+			.filter((m) => m.provider === provider)
+			.map((m) => m.id);
+		const configured = this.config.providers[provider]?.fallbacks.map((f) => f.model) ?? [];
+		return Array.from(new Set([...live, ...configured])).sort();
 	}
 }
